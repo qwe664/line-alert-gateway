@@ -37,3 +37,22 @@ X-Webhook-Secret: YOUR_WEBHOOK_SECRET
 
 The Worker converts `$NOW` to `Asia/Taipei`, sends the message through the LINE
 Messaging API, and returns HTTP 204 when delivery succeeds.
+
+## Deployment
+
+Production deployments are managed by Cloudflare Workers Builds through the
+GitHub repository connection. A push to the `main` branch runs the following
+commands in Cloudflare:
+
+```sh
+npm test
+npx wrangler deploy
+```
+
+The legacy GitHub Actions workflow at `.github/workflows/deploy.yml` is retained
+for rollback purposes but is disabled manually in GitHub. Do not enable it while
+Cloudflare Workers Builds is active, or a push to `main` may deploy the Worker
+twice.
+
+Worker runtime secrets remain encrypted Worker secrets. They are not Cloudflare
+Workers Builds variables and must not be committed to this repository.
