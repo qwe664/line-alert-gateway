@@ -80,17 +80,27 @@ export default {
       return jsonResponse({ error: "invalid_json" }, 400);
     }
 
-    const response = await fetch("https://api.line.me/v2/bot/message/push", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${env.LINE_CHANNEL_ACCESS_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        to: env.LINE_USER_ID,
-        messages: [{ type: "text", text: makeMessage(payload) }],
-      }),
-    });
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+      return jsonResponse({ error: "invalid_payload" }, 400);
+    }
+
+    let response;
+    try {
+      response = await fetch("https://api.line.me/v2/bot/message/push", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${env.LINE_CHANNEL_ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          to: env.LINE_USER_ID,
+          messages: [{ type: "text", text: makeMessage(payload) }],
+        }),
+      });
+    } catch (error) {
+      console.error("LINE push request failed", error);
+      return jsonResponse({ error: "line_push_failed" }, 502);
+    }
 
     if (!response.ok) {
       console.error("LINE push failed", response.status, await response.text());
